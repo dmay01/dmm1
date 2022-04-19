@@ -1,2 +1,3 @@
-# dmm1
-Project 1: An epidemic in the deterministic growth model
+# Project 1: An epidemic in the deterministic growth model
+
+This repository includes the Matlab code needed for porject 1.
