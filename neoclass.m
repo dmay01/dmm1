@@ -1,5 +1,5 @@
 % Master file for Project 1
-% Authors: Daniel May (11809922) and Alexander Kölbl (11776830)
+% Authors: Daniel May (11809922)
 %% A2. Plotting of the SIR model
 % initialize P_A
 P_A = struct();
@@ -22,3 +22,23 @@ for i=1:length(all_pi_s)
     plot_A(I, S, 300);
     exportgraphics(t,strcat('fig',string(i),'.pdf'));
 end
+
+%% C1. Initial steady state
+% define parameter values and functional forms
+% initialize P
+P = struct();
+% define parameters
+P = pars(P);
+% define functions
+P = funforms(P);
+% compute steady state for given parameters
+P = stst(P);
+% report steady state
+disp('kss')
+disp([P.kss])
+disp('css')
+disp([P.css])
+disp('wss')
+disp(P.FL(P.kss,1))
+disp('Rss')
+disp(P.FK(P.kss,1))
