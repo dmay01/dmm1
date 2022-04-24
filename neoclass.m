@@ -15,7 +15,7 @@ for i=1:length(all_pi_s)
     % set pi_s
     P_A.pi_s = all_pi_s(i);
     % compute time paths for the SIR model
-    [I,S] = compute_path_A(P_A, 0.01, 300);
+    [I,S] = compute_path_disease(P_A, 0.01, 300, zeros([1,300+1]));
     % plot paths
     figure;
     t = tiledlayout(2,1);
@@ -42,3 +42,92 @@ disp('wss')
 disp(P.FL(P.kss,1))
 disp('Rss')
 disp(P.FK(P.kss,1))
+%% C2. Scenario without vaccination
+% define parameter values and functional forms
+% initialize P
+Pnew = struct();
+% define parameters
+Pnew = pars(Pnew);
+% define functions
+Pnew = funforms(Pnew);
+% compute steady state for given parameters
+Pnew = stst_full(Pnew);
+% a) report steady state
+disp('kss')
+disp([Pnew.kss])
+disp('css')
+disp([Pnew.css])
+disp('Iss')
+disp(Pnew.Iss)
+disp('Sss')
+disp(Pnew.Sss)
+
+% equilibrium path
+Pnew.p = 1;
+T = 300;
+% set initial values
+k0 = P.kss;
+I0 = 0.01;
+S0 = 1 - I0;
+a = zeros([1,T+1]);
+[c,k,I,S] = compute_path(Pnew,k0,I0,S0,a,T);
+ 
+% b) plot path in (k,c)-plane
+fig = figure;
+plot(P.kss,P.css,'r.','MarkerSize',20);
+hold on
+plot(Pnew.kss,Pnew.css,'b.','MarkerSize',20);
+plot(k,c,'b-');
+hold off
+xlabel('k');
+ylabel('c');
+legend('initial steady state','new steady state','time path', 'Location', 'northwest');
+exportgraphics(fig,'k_c_without.pdf');
+
+% plot time paths of c and k, l, Y
+fig = figure;
+subplot(2,2,1);
+plot([0,T],[P.css,P.css],'r-',0:T,c(1:(T+1)),'b-',[0,T],[Pnew.css,Pnew.css],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+title('consumption');
+xlabel('time');
+
+subplot(2,2,2);
+plot([0,T],[P.kss,P.kss],'r-',0:T,k(1:(T+1)),'b-',[0,T],[Pnew.kss,Pnew.kss],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+xlabel('time');
+title('capital');
+
+subplot(2,2,3);
+plot([0,T],[1,1],'r-',0:T,1-I(1:(T+1)),'b-',[0,T],[1-Pnew.Iss,1-Pnew.Iss],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+title('labour');
+xlabel('time');
+
+subplot(2,2,4);
+plot([0,T],[P.F(P.kss,1),P.F(P.kss,1)],'r-',0:T,P.F(k(1:(T+1)),1-I(1:(T+1))),'b-',[0,T],[P.F(Pnew.kss,1-Pnew.Iss),P.F(Pnew.kss,1-Pnew.Iss)],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+xlabel('time');
+title('output');
+exportgraphics(fig,'time_path_economy_without.pdf');
+
+% plot time paths of I, S
+fig = figure;
+subplot(2,1,1);
+plot([0,T],[0,0],'r-',0:T,I(1:(T+1)),'b-',[0,T],[Pnew.Iss,Pnew.Iss],'k--');
+legend('initial steady state','time path','new steady state');
+xlim([0,T]);
+title('infected');
+xlabel('time');
+
+subplot(2,1,2);
+plot([0,T],[1,1],'r-',0:T,S(1:(T+1)),'b-',[0,T],[Pnew.Sss,Pnew.Sss],'k--');
+legend('initial steady state','time path','new steady state');
+xlim([0,T]);
+xlabel('time');
+title('susceptible');
+exportgraphics(fig,'time_path_disease_without.pdf');
