@@ -229,6 +229,7 @@ T = 600;
 t = 0:T;
 a_grid = 0:a(1)/100:a(1);
 utility = ones([1,length(a_grid)]);
+% calculate utility for each vacc share
 for i=1:length(a_grid)
     a_tmp = a_grid(i)*ones([1,T+1]);
     Pnew = stst_full_vacc(Pnew,a_tmp(1));
@@ -240,7 +241,7 @@ disp('max utility of ')
 disp(max_u);
 disp('at vaccination rate a = ')
 disp(a_grid(index));
-
+% plot utility against vacc rate
 fig = figure;
 plot(a_grid(1:length(a_grid)),utility(1:length(a_grid)),'b-');
 legend('utility');
@@ -248,10 +249,28 @@ xlim([a_grid(1),a_grid(end)]);
 xlabel('vaccination rate');
 title('utility by vaccination');
 exportgraphics(fig,'utility_by_vaccination.pdf');
-
+% calculate costs of vaccination in final steady state
 Pnew = stst_full_vacc(Pnew,a_grid(index));
 
 Qss=Pnew.p*a_grid(index)^2*(1-Pnew.Iss);
 yss=P.F(Pnew.kss,1-Pnew.Iss);
 disp('Costs of the vaccination program as fraction of the output in the final steady state:');
 disp(Qss/yss);
+
+%% C4 check colleague's solution
+a_opt = load("planner_policy.mat");
+T = 400;
+[c,k,I,S] = compute_path(Pnew,k0,I0,S0,a,T);
+fig = figure;
+% plot optimal vacc share by S/(1-I)
+scatter(S./(1-I),a);
+legend('optimal a');
+xlabel('S/(1-I)');
+title('vaccination rate by S/(1-I)');
+exportgraphics(fig,'vaccbydisease.pdf');
+
+%% C5 
+t=0:T;
+constant_share = fzero(@(s) max_u-(sum(P.beta.^t.*P.u(c.*(1-s)))+((P.beta^(T+1))/(1-P.beta))*P.u(c(end)*(1-s))),[-0.00001,0.99999]);
+disp('constant share of lost consumption');
+disp(constant_share);
