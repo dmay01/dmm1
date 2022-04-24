@@ -15,7 +15,7 @@ for i=1:length(all_pi_s)
     % set pi_s
     P_A.pi_s = all_pi_s(i);
     % compute time paths for the SIR model
-    [I,S] = compute_path_disease(P_A, 0.01,1-0.01, 300, zeros([1,300+1]));
+    [I,S] = compute_path_disease(P_A, 0.01, 300, zeros([1,300+1]));
     % plot paths
     figure;
     t = tiledlayout(2,1);
@@ -258,7 +258,7 @@ disp('Costs of the vaccination program as fraction of the output in the final st
 disp(Qss/yss);
 
 %% C4 check colleague's solution
-load("planner_policy.mat");
+a_opt = load("planner_policy.mat");
 T = 400;
 [c,k,I,S] = compute_path(Pnew,k0,I0,S0,a,T);
 fig = figure;
@@ -287,7 +287,7 @@ Pnew = funforms(Pnew);
 
 % equilibrium path
 Pnew.p = 1;
-T = 300;
+T = 51;
 % set initial values
 k0 = P.kss;
 I0 = 0.01;
@@ -295,14 +295,12 @@ S0 = 1 - I0;
 a = zeros([1,T+1]);
 Pnew = stst_full(Pnew);
 
-[c_1,k_1,I_1,S_1] = compute_path(Pnew,k0,I0,S0,a,T);
+[c,k,I,S] = compute_path(Pnew,k0,I0,S0,a,T);
 % set new  recovery probability
 Pnew.pi_r = 0.35;
-[c_2,k_2,I_2,S_2] = compute_path(Pnew,k_1(52),I_1(52),S_1(52),a,T);
-c = [c_1(1:52),c_2(1:249)];
-k = [k_1(1:52),k_2(1:249)];
-I = [I_1(1:52),I_2(1:249)];
-S = [S_1(1:52),S_2(1:249)];
+T = 248;
+[cnew,knew,Inew,Snew] = compute_path(Pnew,k(end),I(end),S(end),a,T);
+T=300;
 % plot time paths of c and k, l, Y
 fig = figure;
 subplot(2,2,1);

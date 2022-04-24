@@ -23,7 +23,7 @@ function [c,k,I,S] = compute_path(P,k0,I0,S0,a,T)
     Xguess = xguess(:);   
 
     % time path of disease
-    [I,S] = compute_path_disease(P, I0, T, a);
+    [I,S] = compute_path_disease(P, I0, S0, T, a);
     
     %% solve H(X)=0 using LBJ
     % number of variables
