@@ -131,3 +131,127 @@ xlim([0,T]);
 xlabel('time');
 title('susceptible');
 exportgraphics(fig,'time_path_disease_without.pdf');
+
+%% C3. Scenario with imemdiate vaccination
+% define parameter values and functional forms
+% initialize P
+Pnew = struct();
+% define parameters
+Pnew = pars(Pnew);
+Pnew.p = 50;
+a = (P.pi_s/P.pi_r)*(P.pi_i-P.pi_r);
+% define functions
+Pnew = funforms(Pnew);
+% compute steady state for given parameters
+Pnew = stst_full_vacc(Pnew,a);
+% a) report steady state
+disp('kss')
+disp([Pnew.kss])
+disp('css')
+disp([Pnew.css])
+disp('Iss')
+disp(Pnew.Iss)
+disp('Sss')
+disp(Pnew.Sss)
+
+% equilibrium path
+T = 300;
+% set initial values
+k0 = P.kss;
+I0 = 0.01;
+S0 = 1 - I0;
+a = a*ones([1,T+1]);
+[c,k,I,S] = compute_path(Pnew,k0,I0,S0,a,T);
+ 
+% b) plot path in (k,c)-plane
+fig = figure;
+plot(P.kss,P.css,'r.','MarkerSize',20);
+hold on
+plot(Pnew.kss,Pnew.css,'b.','MarkerSize',20);
+plot(k,c,'b-');
+hold off
+xlabel('k');
+ylabel('c');
+legend('initial steady state','new steady state','time path', 'Location', 'northwest');
+exportgraphics(fig,'k_c_full.pdf');
+
+% plot time paths of c and k, l, Y
+fig = figure;
+subplot(2,2,1);
+plot([0,T],[P.css,P.css],'r-',0:T,c(1:(T+1)),'b-',[0,T],[Pnew.css,Pnew.css],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+title('consumption');
+xlabel('time');
+
+subplot(2,2,2);
+plot([0,T],[P.kss,P.kss],'r-',0:T,k(1:(T+1)),'b-',[0,T],[Pnew.kss,Pnew.kss],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+xlabel('time');
+title('capital');
+
+subplot(2,2,3);
+plot([0,T],[1,1],'r-',0:T,1-I(1:(T+1)),'b-',[0,T],[1-Pnew.Iss,1-Pnew.Iss],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+title('labour');
+xlabel('time');
+
+subplot(2,2,4);
+plot([0,T],[P.F(P.kss,1),P.F(P.kss,1)],'r-',0:T,P.F(k(1:(T+1)),1-I(1:(T+1))),'b-',[0,T],[P.F(Pnew.kss,1-Pnew.Iss),P.F(Pnew.kss,1-Pnew.Iss)],'k--');
+legend('initial steady state','time path','new steady state', 'Location', 'southeast');
+xlim([0,T]);
+xlabel('time');
+title('output');
+exportgraphics(fig,'time_path_economy_full.pdf');
+
+% plot time paths of I, S
+fig = figure;
+subplot(2,1,1);
+plot([0,T],[0,0],'r-',0:T,I(1:(T+1)),'b-',[0,T],[Pnew.Iss,Pnew.Iss],'k--');
+legend('initial steady state','time path','new steady state');
+xlim([0,T]);
+title('infected');
+xlabel('time');
+
+subplot(2,1,2);
+plot([0,T],[1,1],'r-',0:T,S(1:(T+1)),'b-',[0,T],[Pnew.Sss,Pnew.Sss],'k--');
+legend('initial steady state','time path','new steady state');
+xlim([0,T]);
+xlabel('time');
+title('susceptible');
+exportgraphics(fig,'time_path_disease_full.pdf');
+
+%% C3. (c) finding optimal vaccination rate
+% 101 possible vaccination rates
+T = 600;
+t = 0:T;
+a_grid = 0:a(1)/100:a(1);
+utility = ones([1,length(a_grid)]);
+for i=1:length(a_grid)
+    a_tmp = a_grid(i)*ones([1,T+1]);
+    Pnew = stst_full_vacc(Pnew,a_tmp(1));
+    [c_tmp,~,~,~] = compute_path(Pnew,k0,I0,S0,a_tmp,T);
+    utility(i) = sum(P.beta.^t.*P.u(c_tmp))+((P.beta^(T+1))/(1-P.beta))*P.u(Pnew.css);
+end
+[max_u, index] = max(utility);
+disp('max utility of ')
+disp(max_u);
+disp('at vaccination rate a = ')
+disp(a_grid(index));
+
+fig = figure;
+plot(a_grid(1:length(a_grid)),utility(1:length(a_grid)),'b-');
+legend('utility');
+xlim([a_grid(1),a_grid(end)]);
+xlabel('vaccination rate');
+title('utility by vaccination');
+exportgraphics(fig,'utility_by_vaccination.pdf');
+
+Pnew = stst_full_vacc(Pnew,a_grid(index));
+
+Qss=Pnew.p*a_grid(index)^2*(1-Pnew.Iss);
+yss=P.F(Pnew.kss,1-Pnew.Iss);
+disp('Costs of the vaccination program as fraction of the output in the final steady state:');
+disp(Qss/yss);
